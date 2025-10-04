@@ -1,3 +1,46 @@
+// Session Management - Generates new session on every page load
+function getSessionId() {
+    // Always generate a new session ID on page load (not stored in sessionStorage)
+    // This ensures every refresh is a clean start
+    let sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    return sessionId;
+}
+
+// Global session ID for this page load
+let currentSessionId = null;
+
+// Initialize session and cleanup on page load
+document.addEventListener('DOMContentLoaded', async function() {
+    // Generate new session for this page load
+    currentSessionId = getSessionId();
+    console.log('🔵 New Session Started:', currentSessionId);
+    
+    // Call cleanup endpoint to remove ALL old sessions/files
+    try {
+        console.log('🧹 Cleaning up all old sessions and files...');
+        const response = await fetch('/cleanup-all', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        console.log('✅ Cleanup complete:', data);
+    } catch (error) {
+        console.error('❌ Error cleaning up old sessions:', error);
+    }
+
+    // Setup event listeners
+    const queryInput = document.getElementById('queryInput');
+    if (queryInput) {
+        queryInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) submitQuery();
+        });
+        queryInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    }
+});
+
 async function uploadFile() {
     const fileInput = document.getElementById('fileInput');
     const file = fileInput.files[0];
@@ -9,6 +52,7 @@ async function uploadFile() {
 
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('session_id', currentSessionId);
 
     try {
         const response = await fetch('/upload', { method: 'POST', body: formData });
@@ -48,8 +92,11 @@ async function submitQuery() {
     try {
         const response = await fetch('/query', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `query=${encodeURIComponent(query)}`
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                query: query,
+                session_id: currentSessionId
+            })
         });
         const data = await response.json();
         removeLoadingMessage(loadingId);
@@ -113,12 +160,16 @@ function removeLoadingMessage(loadingId) {
     if (loadingDiv) loadingDiv.remove();
 }
 
-// ✅ New clear function for button
+// Clear function for button
 async function clearHistory() {
     if (!confirm('Are you sure you want to clear chat history and uploaded files?')) return;
 
     try {
-        const response = await fetch('/clear', { method: 'POST' });
+        const response = await fetch('/clear', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: currentSessionId })
+        });
         const data = await response.json();
 
         if (response.ok) {
@@ -143,7 +194,7 @@ function clearChatUI() {
     chatMessages.innerHTML = `
         <div class="empty-chat-state">
             <div class="empty-icon">💬</div>
-            <p>Start a conversation by uploading a file</p>
+            <p>Start a conversation by asking a question about your uploaded file</p>
         </div>
     `;
 }
@@ -161,16 +212,3 @@ function formatBytes(bytes) {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    const queryInput = document.getElementById('queryInput');
-    if (queryInput) {
-        queryInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && e.ctrlKey) submitQuery();
-        });
-        queryInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
-    }
-});
