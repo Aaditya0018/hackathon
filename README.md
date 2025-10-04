@@ -1,6 +1,6 @@
-# DevOps Cloud Query System
+# Query System
 
-A stunning, hackathon-ready web application with DevOps/Kubernetes theme for uploading files and querying them intelligently.
+A stunning, application, uploading files and querying them.
 
 ## 📁 Project Structure
 
@@ -64,32 +64,9 @@ Open your browser and navigate to:
 http://localhost:8000
 ```
 
-## ✨ Features
-
-- **Eye-Catching UI**: Cyberpunk-themed design with animated backgrounds
-- **File Upload**: Drag-and-drop support for any file type
-- **File Analysis**: Displays file metadata (name, type, size, timestamp)
-- **Query Interface**: Ask questions about your uploaded files
-- **Responsive Design**: Works on desktop, tablet, and mobile
-- **Real-time Feedback**: Loading states and success messages
-
 ## 🎯 How to Use
 
 1. **Upload a File**: Click the upload zone or drag a file (YAML, JSON, TXT, LOG, etc.)
 2. **View Details**: File information is automatically displayed
 3. **Enter Query**: Type your question in the text area
 4. **Get Response**: Click "Ask Question" to process and view results
-
-## 🛠️ Customization
-
-### Modify Colors
-Edit `static/style.css` to change the color scheme:
-- Primary: `#00f5ff` (Cyan)
-- Secondary: `#00ff88` (Green)
-- Background: `#0f2027` to `#2c5364` (Dark gradient)
-
-### Add AI Integration
-Replace the mock response in `main.py` `/query` endpoint with:
-- OpenAI API
-- Anthropic Claude API
-- Local
