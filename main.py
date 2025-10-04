@@ -110,7 +110,7 @@ Pro Tip: For Kubernetes manifests, try queries like:
             content={"detail": f"Error processing query: {str(e)}"}
         )
 
-@app.get("/health")
+@app.get("/health") # type: ignore
 async def health_check():
     return {"status": "healthy", "service": "DevOps Cloud Query System"}
 
