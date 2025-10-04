@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevOps Cloud Query System</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="bg-grid"></div>
+    
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <span class="k8s-icon">☸</span> DevOps Cloud Query System
+            </div>
+            <div class="tagline">
+                Kubernetes | Docker | Cloud Native | CI/CD Pipeline
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Welcome Card -->
+            <div class="welcome-card">
+                <h1 class="welcome-title">Welcome to the Future of DevOps</h1>
+                <p class="welcome-text">
+                    Upload your configuration files, logs, or manifests and query them instantly with our intelligent cloud-native analysis system. 
+                    Powered by cutting-edge technology for seamless DevOps workflows.
+                </p>
+            </div>
+
+            <!-- Upload Section -->
+            <div class="upload-section">
+                <h2 class="section-title">
+                    <svg class="icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
+                    </svg>
+                    Upload Your File
+                </h2>
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                        <div class="upload-icon">📁</div>
+                        <p style="font-size: 1.2rem; margin-bottom: 15px;">Click or drag your file here</p>
+                        <p style="color: #00f5ff; font-size: 0.9rem;">Supports YAML, JSON, TXT, LOG, and more</p>
+                        <input type="file" id="fileInput" name="file" class="file-input" onchange="uploadFile()">
+                    </div>
+                </form>
+            </div>
+
+            <!-- Success Message -->
+            <div class="success-message" id="successMessage">
+                ✅ File uploaded successfully!
+            </div>
+
+            <!-- File Details -->
+            <div class="file-details" id="fileDetails">
+                <h2 class="section-title">
+                    <svg class="icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                    </svg>
+                    File Information
+                </h2>
+                <div class="file-info-grid">
+                    <div class="file-info-item">
+                        <div class="file-info-label">File Name</div>
+                        <div class="file-info-value" id="fileName">-</div>
+                    </div>
+                    <div class="file-info-item">
+                        <div class="file-info-label">File Type</div>
+                        <div class="file-info-value" id="fileType">-</div>
+                    </div>
+                    <div class="file-info-item">
+                        <div class="file-info-label">File Size</div>
+                        <div class="file-info-value" id="fileSize">-</div>
+                    </div>
+                    <div class="file-info-item">
+                        <div class="file-info-label">Upload Time</div>
+                        <div class="file-info-value" id="uploadTime">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Query Section -->
+            <div class="query-section" id="querySection">
+                <h2 class="section-title">
+                    <svg class="icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                    Query Your File
+                </h2>
+                <textarea 
+                    id="queryInput" 
+                    class="query-input" 
+                    placeholder="Enter your query here... (e.g., 'What are the pod configurations?' or 'List all environment variables')"
+                    rows="4"
+                ></textarea>
+                <button class="ask-btn" onclick="submitQuery()">
+                    Ask Question 🚀
+                </button>
+
+                <!-- Loading -->
+                <div class="loading" id="loading">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Processing your query...</div>
+                </div>
+            </div>
+
+            <!-- Response Section -->
+            <div class="response-section" id="responseSection">
+                <h2 class="section-title">
+                    <svg class="icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                    </svg>
+                    Query Response
+                </h2>
+                <div class="response-content" id="responseContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
