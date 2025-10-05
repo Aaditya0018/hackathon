@@ -1,34 +1,23 @@
 // Session Management - Generates new session on every page load
 function getSessionId() {
-    // Always generate a new session ID on page load (not stored in sessionStorage)
-    // This ensures every refresh is a clean start
-    let sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    return sessionId;
+    return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 }
 
-// Global session ID for this page load
 let currentSessionId = null;
 
-// Initialize session and cleanup on page load
 document.addEventListener('DOMContentLoaded', async function() {
-    // Generate new session for this page load
     currentSessionId = getSessionId();
     console.log('🔵 New Session Started:', currentSessionId);
-    
-    // Call cleanup endpoint to remove ALL old sessions/files
+
+    // Cleanup server-side to ensure fresh state (optional)
     try {
-        console.log('🧹 Cleaning up all old sessions and files...');
-        const response = await fetch('/cleanup-all', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
+        const response = await fetch('/cleanup-all', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
         const data = await response.json();
-        console.log('✅ Cleanup complete:', data);
-    } catch (error) {
-        console.error('❌ Error cleaning up old sessions:', error);
+        console.log('🧹 cleanup-all:', data);
+    } catch (err) {
+        console.error('Error calling cleanup-all:', err);
     }
 
-    // Setup event listeners
     const queryInput = document.getElementById('queryInput');
     if (queryInput) {
         queryInput.addEventListener('keypress', function(e) {
@@ -41,15 +30,31 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 });
 
+// Called from HTML upload-zone onclick
+function onZoneClick() {
+    const zone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    // If disabled, don't open file dialog
+    if (zone.classList.contains('disabled') || fileInput.disabled) return;
+    fileInput.click();
+}
+
 async function uploadFile() {
     const fileInput = document.getElementById('fileInput');
-    const file = fileInput.files[0];
-    
-    if (!file) {
+    const zone = document.getElementById('uploadZone');
+
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
         alert('Please select a file');
         return;
     }
 
+    // If already disabled, safeguard
+    if (fileInput.disabled || zone.classList.contains('disabled')) {
+        alert('File already uploaded for this session. Reload or clear to upload again.');
+        return;
+    }
+
+    const file = fileInput.files[0];
     const formData = new FormData();
     formData.append('file', file);
     formData.append('session_id', currentSessionId);
@@ -59,19 +64,26 @@ async function uploadFile() {
         const data = await response.json();
 
         if (response.ok) {
-            document.getElementById('successMessage').style.display = 'block';
-            setTimeout(() => { document.getElementById('successMessage').style.display = 'none'; }, 3000);
+            // UI updates
+            const successMessage = document.getElementById('successMessage');
+            successMessage.style.display = 'block';
+            setTimeout(() => { successMessage.style.display = 'none'; }, 2500);
 
             document.getElementById('fileDetails').style.display = 'block';
             document.getElementById('fileName').textContent = data.filename;
-            document.getElementById('fileType').textContent = data.content_type;
-            document.getElementById('fileSize').textContent = formatBytes(data.size);
+            document.getElementById('fileType').textContent = data.content_type || '-';
+            document.getElementById('fileSize').textContent = formatBytes(data.size || 0);
             document.getElementById('uploadTime').textContent = new Date().toLocaleString();
 
             document.getElementById('chatContainer').style.display = 'block';
             clearChatUI();
+
+            // Disable further uploads (frontend)
+            fileInput.disabled = true;
+            zone.classList.add('disabled');
+            document.getElementById('uploadNotice').style.display = 'block';
         } else {
-            alert('Upload failed: ' + data.detail);
+            alert('Upload failed: ' + (data.detail || JSON.stringify(data)));
         }
     } catch (error) {
         alert('Error uploading file: ' + error.message);
@@ -93,16 +105,13 @@ async function submitQuery() {
         const response = await fetch('/query', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                query: query,
-                session_id: currentSessionId
-            })
+            body: JSON.stringify({ query: query, session_id: currentSessionId })
         });
         const data = await response.json();
         removeLoadingMessage(loadingId);
 
         if (response.ok) addMessageToChat(data.response, 'assistant');
-        else alert('Query failed: ' + data.detail);
+        else alert('Query failed: ' + (data.detail || JSON.stringify(data)));
     } catch (error) {
         removeLoadingMessage(loadingId);
         alert('Error processing query: ' + error.message);
@@ -160,7 +169,6 @@ function removeLoadingMessage(loadingId) {
     if (loadingDiv) loadingDiv.remove();
 }
 
-// Clear function for button
 async function clearHistory() {
     if (!confirm('Are you sure you want to clear chat history and uploaded files?')) return;
 
@@ -180,9 +188,18 @@ async function clearHistory() {
             document.getElementById('fileType').textContent = '-';
             document.getElementById('fileSize').textContent = '-';
             document.getElementById('uploadTime').textContent = '-';
+
+            // re-enable upload input
+            const fileInput = document.getElementById('fileInput');
+            const zone = document.getElementById('uploadZone');
+            fileInput.value = '';
+            fileInput.disabled = false;
+            zone.classList.remove('disabled');
+            document.getElementById('uploadNotice').style.display = 'none';
+
             alert(data.message);
         } else {
-            alert('Failed to clear history: ' + data.detail);
+            alert('Failed to clear history: ' + (data.detail || JSON.stringify(data)));
         }
     } catch (error) {
         alert('Error clearing history: ' + error.message);
@@ -206,9 +223,9 @@ function escapeHtml(text) {
 }
 
 function formatBytes(bytes) {
-    if (bytes === 0) return '0 Bytes';
+    if (!bytes) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 }
